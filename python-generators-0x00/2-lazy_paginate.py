@@ -30,9 +30,7 @@ def paginate_users(page_size: int, offset: int) -> list:
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor(dictionary=True)
 
-        query = (
-            "SELECT user_id, name, age FROM user_data ORDER BY name LIMIT %s OFFSET %s"
-        )
+        query = "SELECT * FROM user_data ORDER BY name LIMIT %s OFFSET %s"
         cursor.execute(query, (page_size, offset))
 
         users = cursor.fetchall()
