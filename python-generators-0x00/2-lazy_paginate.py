@@ -13,7 +13,7 @@ DB_CONFIG = {
 }
 
 
-def paginate_users(page_size: int, offset: int) -> list:
+def paginate_users(page_size, offset):
     """
     Fetches a single 'page' of users from the database.
 
