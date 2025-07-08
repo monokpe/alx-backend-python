@@ -1,12 +1,12 @@
 import sqlite3
 import functools
 import os
+from datetime import datetime
 
 # --- Setup: Create a dummy database for the example ---
 DB_FILE = "users.db"
 if os.path.exists(DB_FILE):
     os.remove(DB_FILE)
-
 conn = sqlite3.connect(DB_FILE)
 cursor = conn.cursor()
 cursor.execute(
@@ -42,7 +42,8 @@ def log_queries(func):
             query_arg = args[0]
 
         if query_arg:
-            print(f'LOG: Executing query: "{query_arg}"')
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            print(f'LOG [{timestamp}]: Executing query: "{query_arg}"')
         else:
             print("LOG: Could not find query to log.")
 
