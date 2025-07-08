@@ -52,7 +52,7 @@ async def async_fetch_users():
             return results
 
 
-async def async_fetch_older_users(age_limit: int):
+async def async_fetch_older_users(age_limit):
     """Fetches users older than a given age asynchronously."""
     print(f"-> Starting `async_fetch_older_users` (age > {age_limit})...")
     query = "SELECT * FROM users WHERE age > ?"
