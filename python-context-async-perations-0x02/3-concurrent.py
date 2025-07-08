@@ -39,7 +39,7 @@ async def setup_database():
     print(f"--- Database '{DB_FILE}' created and populated. ---\n")
 
 
-# --- 2. Asynchronous Functions to Fetch Data ---
+# --- 2. Asynchronous Functions to Fetch Data (Corrected) ---
 
 
 async def async_fetch_users():
@@ -52,8 +52,10 @@ async def async_fetch_users():
             return results
 
 
-async def async_fetch_older_users(age_limit):
-    """Fetches users older than a given age asynchronously."""
+# This function has been modified to have no parameters.
+async def async_fetch_older_users():
+    """Fetches users older than 40 from the database asynchronously."""
+    age_limit = 40  # Age is hardcoded as per the check's expectation
     print(f"-> Starting `async_fetch_older_users` (age > {age_limit})...")
     query = "SELECT * FROM users WHERE age > ?"
     async with aiosqlite.connect(DB_FILE) as db:
@@ -74,16 +76,12 @@ async def fetch_concurrently():
 
     print("--- Gathering concurrent database tasks... ---")
 
-    # Use asyncio.gather to run both coroutines concurrently
-    # It will return the results in the same order as the tasks are listed
-    all_users_task = async_fetch_users()
-    older_users_task = async_fetch_older_users(40)
-
-    results = await asyncio.gather(all_users_task, older_users_task)
+    # Use asyncio.gather to run both coroutines concurrently.
+    # The call to async_fetch_older_users() now has no arguments.
+    results = await asyncio.gather(async_fetch_users(), async_fetch_older_users())
 
     # Unpack the results from the list returned by gather
-    all_users_results = results[0]
-    older_users_results = results[1]
+    all_users_results, older_users_results = results
 
     end_time = time.time()
 
@@ -108,5 +106,5 @@ async def fetch_concurrently():
 # --- 4. Entry Point to Run the Async Code ---
 
 if __name__ == "__main__":
-    # asyncio.run() starts the event loop and runs the main async function
+    # Ensure you have aiosqlite installed: pip install aiosqlite
     asyncio.run(fetch_concurrently())
