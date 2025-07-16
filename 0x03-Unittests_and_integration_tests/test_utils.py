@@ -23,7 +23,9 @@ class TestAccessNestedMap(unittest.TestCase):
     def test_access_nested_map(
         self, nested_map: Dict[str, Any], path: Sequence[str], expected: Any
     ) -> None:
-        """Test that access_nested_map returns the correct value for various inputs."""
+        """
+        Test that access_nested_map returns correct value for various inputs.
+        """
         self.assertEqual(access_nested_map(nested_map, path), expected)
 
     @parameterized.expand(
