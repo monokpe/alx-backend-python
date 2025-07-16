@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+"""Unit tests for utils module."""
+
 import unittest
 from utils import access_nested_map
 from parameterized import parameterized
