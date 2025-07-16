@@ -30,7 +30,7 @@ class TestAccessNestedMap(unittest.TestCase):
             ({}, (), {}),
         ]
     )
-    def test_access_nested_map_successful_access(
+    def test_access_nested_map(
         self, nested_map: Dict[str, Any], path: Sequence[str], expected_value: Any
     ) -> None:
         """
@@ -80,4 +80,3 @@ class TestAccessNestedMap(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-# -*- coding: utf-8 -*-
