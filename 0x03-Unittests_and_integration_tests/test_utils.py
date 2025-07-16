@@ -31,7 +31,7 @@ class TestAccessNestedMap(unittest.TestCase):
             ({"a": 1}, ("a", "b")),
         ]
     )
-    def access_nested_map_exception(
+    def test_access_nested_map_exception(
         self, nested_map: Dict[str, Any], path: Sequence[str]
     ) -> None:
         """Test that access_nested_map raises KeyError for invalid paths."""
