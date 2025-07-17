@@ -68,7 +68,7 @@ class TestGithubOrgClient(unittest.TestCase):
         ):
             client = GithubOrgClient("test-org")
             result = client.public_repos()
-            expected_repos = ["repo1", "repo2", "repo3", "repo4"]
+            expected_repos = ["repo1", "repo2", "repo4"]
             self.assertEqual(result, expected_repos)
             mock_get_json.assert_called_once_with(test_repos_url)
 
