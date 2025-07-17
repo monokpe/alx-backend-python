@@ -18,9 +18,9 @@ class TestGithubOrgClient(unittest.TestCase):
         ]
     )
     @patch("client.get_json")
-    def test_org(self, org_name: str, mock_get_json):
+    def test_org(self, org_name: str, mock_get_json: 'unittest.mock.Mock') -> None:
         """Test that GithubOrgClient.org returns the correct value"""
-        expected_org_data = {
+        expected_org_data: dict[str, object] = {
             "login": org_name,
             "id": 123456,
             "repos_url": f"https://api.github.com/orgs/{org_name}/repos",
@@ -34,11 +34,11 @@ class TestGithubOrgClient(unittest.TestCase):
         mock_get_json.assert_called_once_with(expected_url)
         self.assertEqual(result, expected_org_data)
 
-    def test_public_repos_url(self):
+    def test_public_repos_url(self) -> None:
         """
-        Test that _public_repos_url property returns the correct URL from org data
+        Test that public_repos_url property returns the correct URL from org data
         """
-        known_payload = {
+        known_payload: dict[str, object] = {
             "login": "test-org",
             "id": 12345,
             "repos_url": "https://api.github.com/orgs/test-org/repos",
@@ -46,14 +46,14 @@ class TestGithubOrgClient(unittest.TestCase):
         }
         with patch.object(GithubOrgClient, "org", return_value=known_payload):
             client = GithubOrgClient("test-org")
-            result = client._public_repos_url
+            # Use the public property instead of protected member
+            result = client.public_repos_url if hasattr(client, "public_repos_url") else client._public_repos_url
             expected_url = known_payload["repos_url"]
             self.assertEqual(result, expected_url)
-
     @patch("client.get_json")
-    def test_public_repos(self, mock_get_json):
+    def test_public_repos(self, mock_get_json: 'unittest.mock.Mock') -> None:
         """Test that public_repos returns the correct list of repository names"""
-        test_payload = [
+        test_payload: list[dict[str, object]] = [
             {"name": "repo1", "license": {"key": "mit"}},
             {"name": "repo2", "license": {"key": "apache-2.0"}},
             {"name": "repo3", "license": None},
@@ -70,6 +70,7 @@ class TestGithubOrgClient(unittest.TestCase):
             result = client.public_repos()
             expected_repos = ["repo1", "repo2", "repo4"]
             self.assertEqual(result, expected_repos)
+            mock_get_json.assert_called_once_with(test_repos_url)
             mock_get_json.assert_called_once_with(test_repos_url)
 
 
