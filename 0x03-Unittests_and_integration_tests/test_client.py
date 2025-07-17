@@ -11,10 +11,12 @@ from client import GithubOrgClient
 class TestGithubOrgClient(unittest.TestCase):
     """Test class for the GithubOrgClient."""
 
-    @parameterized.expand([
-        ("google",),
-        ("abc",),
-    ])
+    @parameterized.expand(
+        [
+            ("google",),
+            ("abc",),
+        ]
+    )
     @patch("client.get_json")
     def test_org(self, org_name: str, mock_get_json: Mock) -> None:
         """Test that GithubOrgClient.org returns the correct value."""
@@ -34,12 +36,10 @@ class TestGithubOrgClient(unittest.TestCase):
 
     def test_public_repos_url(self) -> None:
         """Test that _public_repos_url returns the correct URL."""
-        known_payload = {
-            "repos_url": "https://api.github.com/orgs/test-org/repos"
-        }
-        with patch.object(GithubOrgClient,
-                          "org",
-                          new_callable=PropertyMock) as mock_org:
+        known_payload = {"repos_url": "https://api.github.com/orgs/test-org/repos"}
+        with patch.object(
+            GithubOrgClient, "org", new_callable=PropertyMock
+        ) as mock_org:
             mock_org.return_value = known_payload
             client = GithubOrgClient("test-org")
             result = client._public_repos_url
@@ -55,9 +55,9 @@ class TestGithubOrgClient(unittest.TestCase):
         ]
         mock_get_json.return_value = test_payload
 
-        with patch.object(GithubOrgClient,
-                          "_public_repos_url",
-                          new_callable=PropertyMock) as mock_public_repos_url:
+        with patch.object(
+            GithubOrgClient, "_public_repos_url", new_callable=PropertyMock
+        ) as mock_public_repos_url:
             test_repos_url = "https://api.github.com/orgs/test-org/repos"
             mock_public_repos_url.return_value = test_repos_url
 
