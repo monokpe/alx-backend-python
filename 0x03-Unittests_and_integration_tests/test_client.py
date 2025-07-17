@@ -37,7 +37,9 @@ class TestGithubOrgClient(unittest.TestCase):
 
     def test_public_repos_url(self) -> None:
         """Test that _public_repos_url returns the correct URL."""
-        known_payload = {"repos_url": "https://api.github.com/orgs/test-org/repos"}
+        known_payload = {
+            "repos_url": "https://api.github.com/orgs/test-org/repos"
+            }
         with patch.object(
             GithubOrgClient, "org", new_callable=PropertyMock
         ) as mock_org:
@@ -84,7 +86,8 @@ class TestGithubOrgClient(unittest.TestCase):
 
 
 @parameterized_class(
-    ("org_payload", "repos_payload", "expected_repos", "apache2_repos"), TEST_PAYLOAD
+    ("org_payload", "repos_payload", "expected_repos", "apache2_repos"), 
+    TEST_PAYLOAD
 )
 class TestIntegrationGithubOrgClient(unittest.TestCase):
     """Integration test for the GithubOrgClient class."""
