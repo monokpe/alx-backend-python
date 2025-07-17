@@ -36,7 +36,9 @@ class TestGithubOrgClient(unittest.TestCase):
 
     def test_public_repos_url(self) -> None:
         """Test that _public_repos_url returns the correct URL."""
-        known_payload = {"repos_url": "https://api.github.com/orgs/test-org/repos"}
+        known_payload = {
+            "repos_url": "https://api.github.com/orgs/test-org/repos"
+        }
         with patch.object(
             GithubOrgClient, "org", new_callable=PropertyMock
         ) as mock_org:
