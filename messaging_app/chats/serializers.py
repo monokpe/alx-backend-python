@@ -17,14 +17,14 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            "id",
+            "user_id",
             "first_name",
             "last_name",
             "email",
             "phone_number",
             "role",
         )
-        read_only_fields = ("id", "role")
+        read_only_fields = ("user_id", "role")
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -35,18 +35,32 @@ class MessageSerializer(serializers.ModelSerializer):
     The sender's full details can be optionally expanded in other serializers if needed.
     """
 
-    sender = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    sender = serializers.CharField(source='sender.email', read_only=True)
+    sender_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
         fields = (
-            "id",
+            "message_id",
             "sender",
+            "sender_name",
             "message_body",
             "sent_at",
             "conversation",
         )
-        read_only_fields = ("id", "sent_at")
+        read_only_fields = ("message_id", "sent_at")
+
+    def get_sender_name(self, obj):
+        """Method field to get sender's full name"""
+        return f"{obj.sender.first_name} {obj.sender.last_name}".strip()
+    
+    def validate_message_body(self, value):
+        """Custom validation for message body"""
+        if not value or not value.strip():
+            raise serializers.ValidationError("Message body cannot be empty.")
+        if len(value) > 1000:
+            raise serializers.ValidationError("Message body cannot exceed 1000 characters.")
+        return value
 
 
 class ConversationSerializer(serializers.ModelSerializer):
@@ -74,13 +88,13 @@ class ConversationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Conversation
         fields = (
-            "id",
+            "conversation_id",
             "participants",
             "messages",
             "created_at",
             "participant_ids",  # Field for creating conversations
         )
-        read_only_fields = ("id", "created_at", "participants", "messages")
+        read_only_fields = ("conversation_id", "created_at", "participants", "messages")
 
     def create(self, validated_data):
         """
