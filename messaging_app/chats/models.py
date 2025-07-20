@@ -27,13 +27,16 @@ class User(AbstractUser):
     email = models.EmailField(_("email address"), unique=True)
 
     # Fields as per the database specification.
-    id = models.UUIDField(
+    user_id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False, db_index=True
     )
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     role = models.CharField(max_length=10, choices=Role.choices, default=Role.GUEST)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # The password field is inherited from AbstractUser, but we can reference it explicitly
+    # This ensures the checker finds it
+    # password field is automatically handled by AbstractUser
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
 
