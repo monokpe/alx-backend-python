@@ -52,14 +52,14 @@ class Conversation(models.Model):
     allowing multiple users to be part of a single conversation.
     """
 
-    id = models.UUIDField(
+    conversation_id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False, db_index=True
     )
     participants = models.ManyToManyField(User, related_name="conversations")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Conversation {self.id}"
+        return f"Conversation {self.conversation_id}"
 
 
 class Message(models.Model):
@@ -71,7 +71,7 @@ class Message(models.Model):
     is deleted, their associated messages are also removed.
     """
 
-    id = models.UUIDField(
+    message_id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False, db_index=True
     )
     sender = models.ForeignKey(
