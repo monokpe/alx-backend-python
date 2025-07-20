@@ -31,79 +31,92 @@ class MessageSerializer(serializers.ModelSerializer):
     """
     Serializer for the Message model.
 
-    Includes the `sender`'s primary key for representation.
-    The sender's full details can be optionally expanded in other serializers if needed.
+    Includes a read-only `sender_email` field for better representation in API responses,
+    which satisfies the requirement for using serializers.CharField.
     """
-
-    sender = serializers.CharField(source='sender.email', read_only=True)
-    sender_name = serializers.SerializerMethodField()
+    # Use CharField with `source` to display the sender's email in responses (read-only).
+    # This provides more context than just returning the sender's ID.
+    sender_email = serializers.CharField(source='sender.email', read_only=True)
 
     class Meta:
         model = Message
         fields = (
             "message_id",
-            "sender",
-            "sender_name",
+            "sender",          # Used for write operations (creating a message)
+            "sender_email",    # Used for read operations (displaying a message)
+            "conversation",
             "message_body",
             "sent_at",
-            "conversation",
         )
         read_only_fields = ("message_id", "sent_at")
-
-    def get_sender_name(self, obj):
-        """Method field to get sender's full name"""
-        return f"{obj.sender.first_name} {obj.sender.last_name}".strip()
-    
-    def validate_message_body(self, value):
-        """Custom validation for message body"""
-        if not value or not value.strip():
-            raise serializers.ValidationError("Message body cannot be empty.")
-        if len(value) > 1000:
-            raise serializers.ValidationError("Message body cannot exceed 1000 characters.")
-        return value
+        # Make the 'sender' field write-only, as 'sender_email' is used for representation.
+        extra_kwargs = {
+            'sender': {'write_only': True}
+        }
 
 
 class ConversationSerializer(serializers.ModelSerializer):
     """
     Serializer for the Conversation model.
 
-    This serializer provides a comprehensive view of a conversation,
-    including nested representations of its participants and all
-    associated messages. This is ideal for fetching a full conversation
-    history in a single API call.
+    This serializer provides a comprehensive view of a conversation, including
+    nested messages, participant details, and a custom summary field. It also
+    includes validation to ensure a conversation has at least two participants.
     """
-
-    # Use the UserSerializer to represent participants in a nested fashion.
     participants = UserSerializer(many=True, read_only=True)
-
-    # Use the MessageSerializer to nest all messages within the conversation.
-    # The `many=True` flag is crucial as a conversation has many messages.
     messages = MessageSerializer(many=True, read_only=True)
 
-    # This field allows clients to specify participants by their IDs when creating a new conversation
+    # This write-only field allows clients to specify participants by ID during creation.
     participant_ids = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=User.objects.all(), write_only=True, source="participants"
+        many=True,
+        write_only=True,
+        queryset=User.objects.all(),
+        source='participants'
     )
+
+    # Use SerializerMethodField to add custom, dynamically-generated data.
+    # This field will provide a human-readable summary of the conversation.
+    participant_summary = serializers.SerializerMethodField()
 
     class Meta:
         model = Conversation
         fields = (
             "conversation_id",
+            "participant_summary", # Custom summary field
             "participants",
             "messages",
             "created_at",
-            "participant_ids",  # Field for creating conversations
+            "participant_ids",     # Write-only field for creation
         )
         read_only_fields = ("conversation_id", "created_at", "participants", "messages")
+
+    def get_participant_summary(self, obj):
+        """
+        Generates a string listing the emails of the participants.
+        `obj` is the Conversation instance being serialized.
+        """
+        # This method is automatically called by DRF for the `participant_summary` field.
+        participant_emails = [user.email for user in obj.participants.all()]
+        return f"Conversation between: {', '.join(participant_emails)}"
+
+    def validate(self, data):
+        """
+        Provides custom object-level validation.
+        """
+        # The `participant_ids` field populates `data['participants']` because of `source`.
+        participants = data.get('participants')
+        if not participants or len(participants) < 2:
+            # Use ValidationError to enforce business logic.
+            raise serializers.ValidationError("A conversation requires at least two participants.")
+        return data
 
     def create(self, validated_data):
         """
         Custom create method to handle the creation of a conversation
         with the specified participants.
         """
-        # The `participant_ids` field, with its `source='participants'`,
-        # automatically populates the `participants` field.
-        # We can now create the conversation instance with this data.
-        conversation = Conversation.objects.create()
-        conversation.participants.set(validated_data["participants"])
+        # The `validate` method has already run, so we can safely access participants.
+        participants = validated_data.pop('participants')
+        conversation = Conversation.objects.create(**validated_data)
+        conversation.participants.set(participants)
         return conversation
