@@ -66,7 +66,6 @@ class ConversationSerializer(serializers.ModelSerializer):
     participants = UserSerializer(many=True, read_only=True)
     messages = MessageSerializer(many=True, read_only=True)
 
-    # This write-only field allows clients to specify participants by ID during creation.
     participant_ids = serializers.PrimaryKeyRelatedField(
         many=True,
         write_only=True,
@@ -74,19 +73,17 @@ class ConversationSerializer(serializers.ModelSerializer):
         source='participants'
     )
 
-    # Use SerializerMethodField to add custom, dynamically-generated data.
-    # This field will provide a human-readable summary of the conversation.
     participant_summary = serializers.SerializerMethodField()
 
     class Meta:
         model = Conversation
         fields = (
             "conversation_id",
-            "participant_summary", # Custom summary field
+            "participant_summary", 
             "participants",
             "messages",
             "created_at",
-            "participant_ids",     # Write-only field for creation
+            "participant_ids",
         )
         read_only_fields = ("conversation_id", "created_at", "participants", "messages")
 
@@ -95,7 +92,6 @@ class ConversationSerializer(serializers.ModelSerializer):
         Generates a string listing the emails of the participants.
         `obj` is the Conversation instance being serialized.
         """
-        # This method is automatically called by DRF for the `participant_summary` field.
         participant_emails = [user.email for user in obj.participants.all()]
         return f"Conversation between: {', '.join(participant_emails)}"
 
@@ -103,20 +99,27 @@ class ConversationSerializer(serializers.ModelSerializer):
         """
         Provides custom object-level validation.
         """
-        # The `participant_ids` field populates `data['participants']` because of `source`.
-        participants = data.get('participants')
-        if not participants or len(participants) < 2:
-            # Use ValidationError to enforce business logic.
-            raise serializers.ValidationError("A conversation requires at least two participants.")
+        request_user = self.context['request'].user
+        participants = data.get('participants', [])
+        
+        # Combine provided participants with the creator
+        all_participants = list(set(participants + [request_user]))
+
+        if len(all_participants) < 2:
+            raise serializers.ValidationError("A conversation requires at least two unique participants.")
         return data
 
     def create(self, validated_data):
         """
-        Custom create method to handle the creation of a conversation
-        with the specified participants.
+        Custom create method that automatically adds the request user
+        to the list of participants.
         """
-        # The `validate` method has already run, so we can safely access participants.
-        participants = validated_data.pop('participants')
+        participants_data = validated_data.pop('participants')
+        request_user = self.context['request'].user
+        
+        # Ensure the creator is always in the participants list
+        participants = list(set(participants_data + [request_user]))
+
         conversation = Conversation.objects.create(**validated_data)
         conversation.participants.set(participants)
         return conversation

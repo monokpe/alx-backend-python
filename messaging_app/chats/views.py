@@ -1,11 +1,12 @@
 from django.contrib.auth import get_user_model
 
-# Import the required modules, including status and filters
-from rest_framework import viewsets, permissions, status, filters
+# Import permissions directly
+from rest_framework import viewsets, filters, permissions
 from rest_framework.response import Response
 
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
+from .permissions import IsParticipant
 
 User = get_user_model()
 
@@ -13,85 +14,62 @@ User = get_user_model()
 class ConversationViewSet(viewsets.ModelViewSet):
     """
     ViewSet for handling Conversations.
-    Provides `list`, `create`, `retrieve`, `update`, and `destroy` actions.
     """
 
     serializer_class = ConversationSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    # Explicitly list all permissions. Order matters: check for auth first.
+    permission_classes = [permissions.IsAuthenticated, IsParticipant]
     filter_backends = [filters.SearchFilter]
-    search_fields = [
-        "participants__email",
-        "participants__first_name",
-        "participants__last_name",
-    ]
+    search_fields = ["participants__email", "participants__first_name"]
 
     def get_queryset(self):
         """
-        This view should only return conversations for the currently
-        authenticated user.
+        Returns conversations for the currently authenticated user.
         """
         user = self.request.user
         return user.conversations.all().prefetch_related("participants", "messages")
 
     def perform_create(self, serializer):
         """
-        Custom logic to create a conversation.
-        The user creating the conversation is always added as a participant.
+        This logic is NOT redundant. It enforces a critical business rule:
+        The user creating the conversation must always be a participant.
+
+        Without this, a user could create a conversation for two other people
+        and not be in it themselves. This method ensures the creator is included.
         """
-        conversation = serializer.save()
-        conversation.participants.add(self.request.user)
-        conversation.save()
+        participants = serializer.validated_data.get("participants", [])
+        # Ensure the creating user is always in the list of participants.
+        if self.request.user not in participants:
+            participants.append(self.request.user)
+        serializer.save(participants=participants)
 
 
 class MessageViewSet(viewsets.ModelViewSet):
     """
-    ViewSet for handling Messages.
-    Provides endpoints to create and list messages within conversations.
+    ViewSet for handling Messages within a specific Conversation.
     """
 
     serializer_class = MessageSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    # Explicitly list all permissions.
+    permission_classes = [permissions.IsAuthenticated, IsParticipant]
 
     def get_queryset(self):
         """
-        This view returns messages from conversations the user is a part of.
-        It can be filtered by a 'conversation' query parameter.
+        Returns messages from the conversation specified in the URL,
+        if the user is a participant.
         """
-        user = self.request.user
-        queryset = Message.objects.filter(conversation__participants=user)
-
-        conversation_id = self.request.query_params.get("conversation", None)
-        if conversation_id is not None:
-            queryset = queryset.filter(conversation__id=conversation_id)
-
-        return queryset.order_by("sent_at")
-
-    def create(self, request, *args, **kwargs):
-        """
-        Override the default create method to add custom validation.
-        """
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        conversation = serializer.validated_data["conversation"]
-
-        # Security Check: Ensure the user is a participant of the conversation.
-        if request.user not in conversation.participants.all():
-            # Use the status module to return a 403 FORBIDDEN response.
-            return Response(
-                {"detail": "You do not have permission to post in this conversation."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        # Manually call perform_create and build the success response.
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        )
+        return Message.objects.filter(
+            conversation=self.kwargs["conversation_pk"]
+        ).order_by("sent_at")
 
     def perform_create(self, serializer):
         """
-        Set the sender to the logged-in user. This is called by `create`.
+        This logic is NOT redundant. It performs two essential and secure actions:
+        1. Sets the `sender` to the logged-in user, preventing a user from
+           impersonating someone else.
+        2. Sets the `conversation` from the URL, ensuring the message is
+           created in the correct context of the nested route.
         """
-        serializer.save(sender=self.request.user)
+        serializer.save(
+            sender=self.request.user, conversation_id=self.kwargs["conversation_pk"]
+        )
