@@ -1,12 +1,11 @@
 from django.contrib.auth import get_user_model
 
-# Import permissions directly
 from rest_framework import viewsets, filters, permissions
 from rest_framework.response import Response
 
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
-from .permissions import IsParticipant
+from .permissions import IsParticipantOfConversation
 
 User = get_user_model()
 
@@ -18,7 +17,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
 
     serializer_class = ConversationSerializer
     # Explicitly list all permissions. Order matters: check for auth first.
-    permission_classes = [permissions.IsAuthenticated, IsParticipant]
+    permission_classes = [permissions.IsAuthenticated, IsParticipantOfConversation]
     filter_backends = [filters.SearchFilter]
     search_fields = ["participants__email", "participants__first_name"]
 
@@ -51,7 +50,7 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     serializer_class = MessageSerializer
     # Explicitly list all permissions.
-    permission_classes = [permissions.IsAuthenticated, IsParticipant]
+    permission_classes = [permissions.IsAuthenticated, IsParticipantOfConversation]
 
     def get_queryset(self):
         """

@@ -1,6 +1,6 @@
 from rest_framework import permissions
 
-class IsConversationParticipant(permissions.BasePermission):
+class IsParticipantOfConversation(permissions.BasePermission):
     """
     Permission check to ensure the user is a participant of the conversation.
     This is used for Conversation objects.
