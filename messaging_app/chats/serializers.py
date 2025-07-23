@@ -34,25 +34,21 @@ class MessageSerializer(serializers.ModelSerializer):
     Includes a read-only `sender_email` field for better representation in API responses,
     which satisfies the requirement for using serializers.CharField.
     """
-    # Use CharField with `source` to display the sender's email in responses (read-only).
-    # This provides more context than just returning the sender's ID.
+
     sender_email = serializers.CharField(source='sender.email', read_only=True)
 
     class Meta:
         model = Message
         fields = (
             "message_id",
-            "sender",          # Used for write operations (creating a message)
-            "sender_email",    # Used for read operations (displaying a message)
+            "sender",          
+            "sender_email",    
             "conversation",
             "message_body",
             "sent_at",
         )
-        read_only_fields = ("message_id", "sent_at")
-        # Make the 'sender' field write-only, as 'sender_email' is used for representation.
-        extra_kwargs = {
-            'sender': {'write_only': True}
-        }
+        read_only_fields = ("message_id", "sent_at", "sender", "conversation")
+        
 
 
 class ConversationSerializer(serializers.ModelSerializer):

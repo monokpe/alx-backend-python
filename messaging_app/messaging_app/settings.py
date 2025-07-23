@@ -128,6 +128,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+SIMPLE_JWT = {
+    "USER_ID_FIELD": "user_id",
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

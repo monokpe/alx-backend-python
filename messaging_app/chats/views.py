@@ -7,7 +7,7 @@ from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
 from .permissions import IsParticipantOfConversation
 from .filters import MessageFilter
-
+from .pagination import MessagePagination
 
 User = get_user_model()
 
@@ -47,12 +47,13 @@ class ConversationViewSet(viewsets.ModelViewSet):
 class MessageViewSet(viewsets.ModelViewSet):
     """
     ViewSet for handling Messages within a specific Conversation.
-    Includes pagination and filtering.
+    Includes custom pagination and filtering, overriding the global setting.
     """
 
     serializer_class = MessageSerializer
     permission_classes = [permissions.IsAuthenticated, IsParticipantOfConversation]
     filterset_class = MessageFilter
+    pagination_class = MessagePagination
 
     def get_queryset(self):
         """

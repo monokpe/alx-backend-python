@@ -4,7 +4,7 @@ import uuid
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-
+from .managers import CustomUserManager
 
 class User(AbstractUser):
     """
@@ -20,13 +20,10 @@ class User(AbstractUser):
         HOST = "HOST", _("Host")
         ADMIN = "ADMIN", _("Admin")
 
-    # Override the username field to be non-editable and not required.
     username = models.CharField(max_length=150, unique=False, blank=True, null=True)
 
-    # Use email as the primary identifier for authentication.
     email = models.EmailField(_("email address"), unique=True)
 
-    # Fields as per the database specification.
     user_id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False, db_index=True
     )
@@ -34,12 +31,10 @@ class User(AbstractUser):
     role = models.CharField(max_length=10, choices=Role.choices, default=Role.GUEST)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    # The password field is inherited from AbstractUser, but we can reference it explicitly
-    # This ensures the checker finds it
-    # password field is automatically handled by AbstractUser
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
 
+    objects = CustomUserManager()
     def __str__(self):
         return self.email
 
