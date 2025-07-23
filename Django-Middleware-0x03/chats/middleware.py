@@ -98,7 +98,7 @@ class OffensiveLanguageMiddleware:
         return response
 
 
-class RolePermissionMiddleware:
+class RolepermissionMiddleware:
     def __init__(self, get_response):
         """One-time configuration and initialization."""
         self.get_response = get_response
