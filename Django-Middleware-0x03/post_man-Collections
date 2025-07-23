@@ -1,0 +1,165 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+    "name": "Messaging App API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login (Get JWT)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"alice@example.com\",\n    \"password\": \"testpassword123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/auth/token/",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": ["api", "auth", "token", ""]
+            },
+            "description": "Log in with a user's email and password to receive an access and refresh token."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Conversations",
+      "item": [
+        {
+          "name": "Create Conversation",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"participant_ids\": [\n        \"<bob_user_id>\"\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/conversations/",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": ["api", "conversations", ""]
+            },
+            "description": "Creates a new conversation. The logged-in user is automatically added as a participant. Don't forget to add a Bearer Token."
+          },
+          "response": []
+        },
+        {
+          "name": "List My Conversations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/conversations/",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": ["api", "conversations", ""]
+            },
+            "description": "Fetches a list of all conversations the authenticated user is a part of. Don't forget to add a Bearer Token."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Messages",
+      "item": [
+        {
+          "name": "Send Message to Conversation",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"message_body\": \"Hello from Postman!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/conversations/<conversation_id>/messages/",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": [
+                "api",
+                "conversations",
+                "<conversation_id>",
+                "messages",
+                ""
+              ]
+            },
+            "description": "Sends a new message to a specific conversation. The sender is automatically set to the authenticated user. Don't forget to add a Bearer Token and replace the conversation_id in the URL."
+          },
+          "response": []
+        },
+        {
+          "name": "List Messages in Conversation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/conversations/<conversation_id>/messages/",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": [
+                "api",
+                "conversations",
+                "<conversation_id>",
+                "messages",
+                ""
+              ]
+            },
+            "description": "Fetches all messages in a specific conversation. Don't forget to add a Bearer Token and replace the conversation_id in the URL."
+          },
+          "response": []
+        },
+        {
+          "name": "SECURITY TEST: Access Messages as Non-Participant",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/conversations/<conversation_id>/messages/",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": [
+                "api",
+                "conversations",
+                "<conversation_id>",
+                "messages",
+                ""
+              ]
+            },
+            "description": "This should fail with a 403 Forbidden error if you use the token of a user who is NOT a participant in the conversation."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
