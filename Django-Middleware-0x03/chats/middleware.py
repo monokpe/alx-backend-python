@@ -25,17 +25,11 @@ class RequestLoggingMiddleware:
         
         user = "Anonymous"
         if request.user.is_authenticated:
-            # We use user.pk as it's a reliable identifier. Email could be long.
             user = f"User_ID:{request.user.pk}" 
         
-        # Log the request details using our configured logger
         log_message = f"User: {user} - Path: {request.path} - Method: {request.method}"
         request_logger.info(log_message)
-
-        # --- This line calls the next middleware in the chain, or the view if it's the last one. ---
         response = self.get_response(request)
 
-        # --- Code to be executed for each request/response after the view is called. ---
-        # For this task, we don't need to do anything with the response.
         
         return response
