@@ -1,0 +1,10 @@
+INFO 2025-07-23 12:50:46,606 middleware Request: GET /admin/chats/user/ at 2025-07-23T12:50:46.606136
+INFO 2025-07-23 12:50:46,622 middleware User: User_ID:c67c1916-4e7b-4538-9eee-250b6a0f983a - Path: /admin/chats/user/ - Method: GET
+INFO 2025-07-23 12:50:46,891 middleware Request: GET /admin/jsi18n/ at 2025-07-23T12:50:46.891552
+INFO 2025-07-23 12:50:46,898 middleware User: User_ID:c67c1916-4e7b-4538-9eee-250b6a0f983a - Path: /admin/jsi18n/ - Method: GET
+INFO 2025-07-23 12:50:49,382 middleware Request: GET /admin/chats/user/e0998f5c-434f-4ca1-b3e3-f56ffab40dba/change/ at 2025-07-23T12:50:49.382639
+INFO 2025-07-23 12:50:49,386 middleware User: User_ID:c67c1916-4e7b-4538-9eee-250b6a0f983a - Path: /admin/chats/user/e0998f5c-434f-4ca1-b3e3-f56ffab40dba/change/ - Method: GET
+INFO 2025-07-23 12:50:49,786 middleware Request: GET /admin/jsi18n/ at 2025-07-23T12:50:49.786874
+INFO 2025-07-23 12:50:49,798 middleware User: User_ID:c67c1916-4e7b-4538-9eee-250b6a0f983a - Path: /admin/jsi18n/ - Method: GET
+INFO 2025-07-23 12:51:35,247 middleware Request: GET /admin/chats/user/ at 2025-07-23T12:51:35.247856
+INFO 2025-07-23 12:51:35,255 middleware User: User_ID:c67c1916-4e7b-4538-9eee-250b6a0f983a - Path: /admin/chats/user/ - Method: GET
