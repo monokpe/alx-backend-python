@@ -31,3 +31,18 @@ def conversation_thread_view(request, conversation_id):
 
     context = {"messages": top_level_messages}
     return render(request, "chats/conversation_thread.html", context)
+
+
+@login_required
+def unread_messages_view(request):
+    """
+    Displays a list of unread messages for the logged-in user,
+    using the custom manager and optimizing with .only().
+    """
+ 
+    unread_inbox = Message.unread.for_user(request.user).only(
+        "id", "sender__username", "content", "timestamp"
+    )
+
+    context = {"unread_messages": unread_inbox}
+    return render(request, "messaging/unread_inbox.html", context)

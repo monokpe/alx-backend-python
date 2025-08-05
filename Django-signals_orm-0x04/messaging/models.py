@@ -2,6 +2,21 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+class UnreadMessagesManager(models.Manager):
+    """
+    Custom manager to filter for unread messages.
+    """
+
+    def get_queryset(self):
+        return super().get_queryset().filter(is_read=False)
+
+    def for_user(self, user):
+        """
+        Returns unread messages for a specific user.
+        """
+        return self.get_queryset().filter(receiver=user)
+
+
 class Message(models.Model):
     """
     Represents a direct message from one user to another.
@@ -26,12 +41,11 @@ class Message(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
     parent_message = models.ForeignKey(
-        'self', 
-        on_delete=models.CASCADE, 
-        null=True, 
-        blank=True, 
-        related_name='replies'
+        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="replies"
     )
+
+    objects = models.Manager()
+    unread = UnreadMessagesManager()
 
     def __str__(self):
         edited_status = "(edited)" if self.edited else ""
