@@ -53,6 +53,9 @@ class Message(models.Model):
             f"From {self.sender.username} to {self.receiver.username} {edited_status}"
         )
 
+    class Meta:
+        ordering = ["timestamp"]
+
 
 class MessageHistory(models.Model):
     """

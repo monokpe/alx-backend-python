@@ -1,9 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.contrib import messages
 from .models import Message
 from django.views.decorators.cache import cache_page
+from django.db.models import Prefetch
 
 
 @login_required
@@ -58,3 +59,45 @@ def message_list_view(request):
 
     context = {"messages": all_messages}
     return render(request, "chats/message_list.html", context)
+
+
+@login_required
+def threaded_conversation_view(request, message_id):
+    """
+    Displays a parent message and all its replies in a thread.
+    Handles the creation of a new reply via a POST request.
+    """
+    parent_message = get_object_or_404(
+        Message, id=message_id, parent_message__isnull=True
+    )
+
+    if request.method == "POST":
+        content = request.POST.get("content")
+        if content:
+            reply_sender = request.user
+
+            reply_receiver = parent_message.sender
+
+            Message.objects.create(
+                sender=reply_sender,
+                receiver=reply_receiver,
+                content=content,
+                parent_message=parent_message,
+            )
+        return redirect("threaded_conversation_view", message_id=message_id)
+
+    thread = (
+        Message.objects.filter(id=message_id)
+        .prefetch_related(
+            Prefetch(
+                "replies",
+                queryset=Message.objects.select_related("sender").order_by("timestamp"),
+            )
+        )
+        .select_related("sender")
+        .first()
+    )
+
+    context = {"thread": thread}
+
+    return render(request, "messaging/threaded_conversation.html", context)
