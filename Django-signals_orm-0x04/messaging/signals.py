@@ -1,7 +1,8 @@
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save, pre_save, post_delete
 from django.dispatch import receiver
 from django.contrib.auth.models import User
 from .models import Message, Notification, MessageHistory
+from django.db.models import Q
 
 
 @receiver(post_save, sender=Message)
@@ -30,3 +31,14 @@ def log_message_edit(sender, instance, **kwargs):
                 instance.edited = True
         except Message.DoesNotExist:
             pass
+
+@receiver(post_delete, sender=User)
+def delete_user_data(sender, instance, **kwargs):
+    """
+    When a user is deleted, clean up all related data.
+    Note: While on_delete=CASCADE handles this at the DB level,
+    this signal can be used for more complex cleanup or logging.
+    """
+    print(f"User {instance.username} is being deleted. Cleaning up associated data.")
+
+    Message.objects.filter(Q(sender=instance) | Q(receiver=instance)).delete()
