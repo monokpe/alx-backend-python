@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.contrib import messages
 from .models import Message
+from django.views.decorators.cache import cache_page
 
 
 @login_required
@@ -39,10 +40,21 @@ def unread_messages_view(request):
     Displays a list of unread messages for the logged-in user,
     using the custom manager and optimizing with .only().
     """
- 
+
     unread_inbox = Message.unread.for_user(request.user).only(
         "id", "sender__username", "content", "timestamp"
     )
 
     context = {"unread_messages": unread_inbox}
     return render(request, "messaging/unread_inbox.html", context)
+
+
+@cache_page(60)
+def message_list_view(request):
+    """
+    A view that displays a list of all messages, cached for 60 seconds.
+    """
+    all_messages = Message.objects.all().select_related("sender", "receiver")
+
+    context = {"messages": all_messages}
+    return render(request, "chats/message_list.html", context)
