@@ -43,7 +43,7 @@ def unread_messages_view(request):
     using the custom manager and optimizing with .only().
     """
 
-    unread_inbox = Message.unread.for_user(request.user).only(
+    unread_inbox = Message.unread.unread_for_user(request.user).only(
         "id", "sender__username", "content", "timestamp"
     )
 

@@ -6,7 +6,7 @@ class UnreadMessagesManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(is_read=False)
 
-    def for_user(self, user):
+    def unread_for_user(self, user):
         """
         Returns unread messages for a specific user.
         """
