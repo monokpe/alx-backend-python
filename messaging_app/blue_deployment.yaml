@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-blue
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: django
+      version: blue
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1 # At most 1 pod down at a time
+      maxSurge: 1 # At most 1 extra pod during rollout
+  template:
+    metadata:
+      labels:
+        app: django
+        version: blue
+    spec:
+      containers:
+        - name: django
+          image: localhost/cave254/django-messaging:2.0 # 👈 Updated version
+          ports:
+            - containerPort: 8000

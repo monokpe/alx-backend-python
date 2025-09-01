@@ -1,0 +1,23 @@
+#!/bin/bash
+set -e
+
+echo "🚀 Deploying Blue version..."
+kubectl apply -f blue_deployment.yaml
+
+echo "🚀 Deploying Green version..."
+kubectl apply -f green_deployment.yaml
+
+echo "📌 Applying Service..."
+kubectl apply -f kubeservice.yaml
+
+echo "⏳ Waiting for pods to be ready..."
+kubectl rollout status deployment/django-blue
+kubectl rollout status deployment/django-green
+
+echo "🔍 Checking logs for Blue pods..."
+kubectl logs -l app=django,version=blue --tail=20
+
+echo "🔍 Checking logs for Green pods..."
+kubectl logs -l app=django,version=green --tail=20
+
+echo "✅ Blue-Green deployment set up successfully!"

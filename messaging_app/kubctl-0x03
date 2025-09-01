@@ -1,0 +1,25 @@
+#!/bin/bash
+set -e
+
+DEPLOYMENT="django-blue"
+SERVICE="django-service"
+NAMESPACE="default"
+
+echo "🚀 Applying rolling update with new image (v2.0)..."
+kubectl apply -f blue_deployment.yaml
+
+echo "📌 Monitoring rollout status..."
+kubectl rollout status deployment/$DEPLOYMENT -n $NAMESPACE
+
+# Get service cluster IP and port
+CLUSTER_IP=$(kubectl get svc $SERVICE -n $NAMESPACE -o jsonpath='{.spec.clusterIP}')
+PORT=$(kubectl get svc $SERVICE -n $NAMESPACE -o jsonpath='{.spec.ports[0].port}')
+
+echo "🌐 Testing app availability during rollout..."
+for i in {1..20}; do
+  curl --max-time 2 http://$CLUSTER_IP:$PORT/ || echo "❌ Request failed"
+  sleep 1
+done
+
+echo "✅ Rolling update complete. Current pods:"
+kubectl get pods -l app=django,version=blue -n $NAMESPACE
