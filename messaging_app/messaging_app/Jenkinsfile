@@ -1,17 +1,18 @@
 pipeline {
     agent any
-
     stages {
         stage('Checkout') {
             steps {
-                // Clones the repository
-                git 'https://github.com/monokpe/alx-backend-python.git'
+                // Clones the repository with credentialsId and branch specified
+                git branch: 'main', 
+                    credentialsId: 'github-credentials',
+                    url: 'https://github.com/monokpe/alx-backend-python.git'
             }
         }
         stage('Install Dependencies') {
             steps {
                 // Installs dependencies from requirements.txt
-                sh 'pip install -r requirements.txt'
+                sh 'pip3 install -r messaging_app/requirements.txt'
             }
         }
         stage('Run Pytest') {
