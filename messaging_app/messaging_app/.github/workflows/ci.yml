@@ -7,13 +7,24 @@ on:
   pull_request:
     branches:
       - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: test_db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
           --health-retries=5
-    push:
-      branches:
-        - main
-    pull_request:
-      branches:
-        - main
 
     steps:
       - name: Checkout repository
@@ -33,14 +44,30 @@ on:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install flake8 coverage
 
-      - name: Run Django Tests
+      - name: Run flake8 Lint
         run: |
-          python manage.py test
+          flake8 .
+
+      - name: Run Tests with Coverage
+        run: |
+          coverage run manage.py test
         env:
           DB_NAME: test_db
           DB_USER: root
           DB_PASSWORD: rootpassword
-          DB_HOST: 127.0.0.1 # Use localhost to connect to the service container
+          DB_HOST: 127.0.0.1
           DB_PORT: ${{ job.services.mysql.ports['3306'] }}
           DJANGO_SETTINGS_MODULE: messaging_app.settings
+
+      - name: Generate Coverage Report
+        run: |
+          coverage xml
+          coverage html
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov/
