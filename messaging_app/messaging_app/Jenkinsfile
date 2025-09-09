@@ -1,0 +1,30 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Clones the repository
+                git 'https://github.com/monokpe/alx-backend-python.git'
+            }
+        }
+        stage('Install Dependencies') {
+            steps {
+                // Installs dependencies from requirements.txt
+                sh 'pip install -r requirements.txt'
+            }
+        }
+        stage('Run Pytest') {
+            steps {
+                // Runs pytest and generates a JUnit XML report
+                sh 'pytest --junitxml=report.xml'
+            }
+        }
+    }
+    post {
+        always {
+            // Publishes the JUnit test report, making it visible in Jenkins
+            junit 'report.xml'
+        }
+    }
+}
