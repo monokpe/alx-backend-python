@@ -1,5 +1,15 @@
 pipeline {
     agent any
+     // Define environment variables for the pipeline
+    environment {
+        // Use the ID you created in Jenkins Credentials
+        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
+        // Your Docker Hub username
+        DOCKERHUB_USERNAME = 'your-dockerhub-username'
+        // The name of the image you want to build
+        IMAGE_NAME = 'my-python-app'
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -19,6 +29,35 @@ pipeline {
             steps {
                 // Runs pytest and generates a JUnit XML report
                 sh 'pytest --junitxml=report.xml'
+            }
+        }
+    }
+    stage('Build Docker Image') {
+            steps {
+                script {
+                    // Build the Docker image and tag it with the build number
+                    // The '.' refers to the current directory (where the Dockerfile is)
+                    sh "docker build -t ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${env.BUILD_NUMBER} ."
+                }
+            }
+        }
+
+        // --- NEW STAGE: Push Docker Image ---
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    // The withRegistry block handles login and logout automatically
+                    // using the credentials you stored in Jenkins.
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS_ID) {
+
+                        // Push the image with the build number tag
+                        sh "docker push ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${env.BUILD_NUMBER}"
+
+                        // (Optional) Also push a 'latest' tag
+                        sh "docker tag ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${env.BUILD_NUMBER} ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest"
+                        sh "docker push ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest"
+                    }
+                }
             }
         }
     }
